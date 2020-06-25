@@ -9,8 +9,15 @@ const getBooks = () => {
   });
 };
 
+const getAvailableBooks = () => {
+  library.getAvailableBooks(db).then((books) => {
+    console.table(books);
+  });
+};
+
 const main = () => {
   getBooks();
+  getAvailableBooks();
 };
 
 main();

@@ -16,13 +16,36 @@ class Library {
   }
 
   getBooks() {
-    const sql = 'SELECT * FROM book_titles';
+    const sql = ` SELECT
+        title,
+        book_category,
+        author_1,
+        author_2,
+        author_3
+      FROM
+        book_titles`;
+
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getAvailableBooks() {
-    //this.bookTitles
-    // this.bookCopies
+    const sql = `
+    SELECT
+      DISTINCT title,
+      count(title) OVER(PARTITION BY title) as no_of_copies_available,
+      author_1,
+      author_2,
+      author_3,
+      publisher_name,
+      book_category
+    FROM
+      book_titles
+      INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
+    WHERE
+      is_available = ?
+      and date('now') >= available_from`;
+
+    return runSql(sql, [true], this.db.all.bind(this.db));
   }
 
   filterBooksBy(cause) {
