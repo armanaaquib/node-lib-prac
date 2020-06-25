@@ -1,11 +1,5 @@
-const sqlite3 = require('sqlite3').verbose();
+const db = require('./src/database');
 const { Library } = require('./src/library');
-
-const db = new sqlite3.Database('../library_dbms/lib.db', (err) => {
-  if (err) {
-    throw err;
-  }
-});
 
 const library = new Library(db);
 
