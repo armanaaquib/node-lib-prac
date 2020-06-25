@@ -18,3 +18,9 @@ c. filter books
 d  most popular/demanding
 e. most regular user
 f. defaulter users
+
+
+
+1. create tables
+all 3 tables
+
