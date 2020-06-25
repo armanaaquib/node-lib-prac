@@ -1,26 +1,66 @@
-Operations------------
+user-->main--> library -->LibraryDB(schema)
+                                |__DML
 
-2 Options
-    1. User
-    2. Librarian
+{tableName: columnDetails, tableName2: columnDetails}
+class LibraryModel{
 
-1. User
-a. list all books
-b. filter options by (author, categories, book, etc...)
-c. issue : (book - available, user:id)
-d. return : (serial no->lib)
+  constructor(columnDetails, tableName){
+    this.table = createTable;
+    this.tableName = tableName
+  }
+['name varchar(30)', 'age numeric(3)']
+
+  createTable(){
+    columnDAta = columnDetails.join(',')
+    db.run(`create table ${this.tableName}(columnData))
+  }
+['age=3','name=aaquib']
+
+  update(condition, columnName, tableName){
+    this.${tableName}
+    updationDetail.join(',')
+    db.run(`update this.tableName set columnName = data where condition`)
+    return boolean
+  }
+
+  delete(condition){
+    return boolean
+  }
+
+  query(queryDetails, params){
+    return data/null
+  }
+}
+
+new LibraryDB(schema)
+
+Model---
+   class LibraryDB
+   (schema)
+   insert
+   update,
+   delete,
+   select
 
 
-2. Librarian
-a. add books
-b. list books
-c. filter books 
-d  most popular/demanding
-e. most regular user
-f. defaulter users
+     -- Create table IF not exists 3
+     -- Insert into table 3
+     -- Update table 3
+     -- Delete table 3
 
 
+class Library
+    Query
+    insert
 
-1. create tables
-all 3 tables
+  Main file ---
+  new Library(tab1)
+  new Library(tab1)
+  new Library(tab1)
+  tab1.Create
+  tab2.Create
+  tab3.Create
 
+  tab1.insert
+
+  query(tab1, tab2, tab3)
