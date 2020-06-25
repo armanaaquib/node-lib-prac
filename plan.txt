@@ -1,0 +1,20 @@
+Operations------------
+
+2 Options
+    1. User
+    2. Librarian
+
+1. User
+a. list all books
+b. filter options by (author, categories, book, etc...)
+c. issue : (book - available, user:id)
+d. return : (serial no->lib)
+
+
+2. Librarian
+a. add books
+b. list books
+c. filter books 
+d  most popular/demanding
+e. most regular user
+f. defaulter users
