@@ -56,17 +56,18 @@ class Library {
   }
 
   getAvailableBooks() {
-    const sql = `
-    SELECT
-      DISTINCT title,
-      count(title) OVER(PARTITION BY title) as no_of_copies_available,
-      author_1,
-      author_2,
-      author_3,
-      publisher_name,
-      book_category
-    FROM
-      book_titles
+    const columns = [
+      'DISTINCT title',
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available',
+      'author_1',
+      'author_2',
+      'author_3',
+      'publisher_name',
+      'book_category',
+    ];
+
+    const sql = `  
+    ${this.bookParser.select({ columns })}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -93,17 +94,18 @@ class Library {
   }
 
   filterAvailableBooksBy(cause) {
+    const columns = [
+      'DISTINCT title',
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available',
+      'author_1',
+      'author_2',
+      'author_3',
+      'publisher_name',
+      'book_category',
+    ];
+
     const sql = `
-    SELECT
-      DISTINCT title,
-      count(title) OVER(PARTITION BY title) as no_of_copies_available,
-      author_1,
-      author_2,
-      author_3,
-      publisher_name,
-      book_category
-    FROM
-      book_titles
+    ${this.bookParser.select({ columns })}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -114,30 +116,20 @@ class Library {
   }
 
   issueBook(serialNumber, userId) {
-    const libLogInsertSql = `
-    INSERT INTO
-      library_log(
-        action,
-        date_of_action,
-        library_user_id,
-        serial_number
-      )
-    VALUES
-      ('issue',
-      date('now'),
-      ${userId},
-      '${serialNumber}')
-    `;
+    const values = [`"issue", date('now'),  ${userId}, "${serialNumber}"`];
+    const libLogInsertSql = this.logParser.insert({
+      columns: this.logParser.getColumns(),
+      values,
+    });
 
-    const updateBookCopySql = `
-    UPDATE
-      book_copies
-    SET
-      is_available = false,
-      issued_date = date('now'),
-      library_user_id = ${userId}
-    WHERE
-      serial_number = '${serialNumber}'`;
+    const updateBookCopySql = this.copyParser.update({
+      columns: [
+        'is_available = false',
+        'issued_date = date("now")',
+        `library_user_id = ${userId}`,
+      ],
+      where: `serial_number = '${serialNumber}'`,
+    });
 
     const isAvailableSql = `
     SELECT
@@ -151,7 +143,7 @@ class Library {
     return new Promise((res, rej) => {
       this.db.get(isAvailableSql, (err, row) => {
         if (row.no_of_copies_available === 0) {
-          res(false);
+          return res(false);
         }
 
         this.db.parallelize(() => {
@@ -165,8 +157,44 @@ class Library {
   }
 
   returnBook(serialNumber, userId) {
-    // this.bookCopies
-    // this.libraryLog
+    const values = [`"return", date('now'),  ${userId}, "${serialNumber}"`];
+    const libLogInsertSql = this.logParser.insert({
+      columns: this.logParser.getColumns(),
+      values,
+    });
+
+    const updateBookCopySql = this.copyParser.update({
+      columns: [
+        'is_available = true',
+        'issued_date = NULL',
+        'library_user_id = NULL',
+      ],
+      where: `serial_number = '${serialNumber}'`,
+    });
+
+    const isCorrectCopySql = `
+    SELECT
+      count(serial_number) AS no_of_copies_available
+    FROM
+      book_copies
+    WHERE
+      is_available = false
+      AND serial_number = '${serialNumber}'`;
+
+    return new Promise((res, rej) => {
+      this.db.get(isCorrectCopySql, (err, row) => {
+        if (row.no_of_copies_available === 0) {
+          return res(false);
+        }
+
+        this.db.parallelize(() => {
+          this.db.run(libLogInsertSql);
+          this.db.run(updateBookCopySql);
+        });
+
+        res(true);
+      });
+    });
   }
 
   addBook(bookDetail, bookCopiesDetail) {

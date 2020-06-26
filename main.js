@@ -42,7 +42,7 @@ const filterBooksBy = () => {
     });
 };
 
-const filterAvailableBooks = () => {
+const filterAvailableBooksBy = () => {
   library
     .filterAvailableBooksBy({ attribute: 'book_category', value: '"CSE"' })
     .then((rows) => {
@@ -51,21 +51,29 @@ const filterAvailableBooks = () => {
 };
 
 const issueBook = () => {
-  library.issueBook('LIB00003', 25275).then((res) => console.log(res));
+  library.issueBook('LIB00001', 25275).then((res) => console.log(res));
+  getDetails('getLogs');
+  getDetails('getBookCopies');
+};
+
+const returnBook = () => {
+  library.returnBook('LIB00001', 25275).then((res) => console.log(res));
   getDetails('getLogs');
   getDetails('getBookCopies');
 };
 
 const main = () => {
   getDetails('getBooks');
-  getDetails('getLogs');
+  // getDetails('getAvailableBooks');
+  // getDetails('getLogs');
   // getDetails('defaulterUsers');
   // getDetails('popularBooks');
   // getDetails('regularUsers');
-  getDetails('getBookCopies');
+  // getDetails('getBookCopies');
   // filterBooksBy();
-  // filterAvailableBooks();
-  issueBook();
+  // filterAvailableBooksBy();
+  // issueBook();
+  returnBook();
   // addBook();
   // addCopy();
 };
