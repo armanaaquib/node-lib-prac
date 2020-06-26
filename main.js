@@ -1,10 +1,15 @@
+const prompt = require('prompt-sync')();
+
 const { db, bookParser, copyParser, logParser } = require('./src/database');
 const { Library } = require('./src/library');
 
 const library = new Library(db, bookParser, copyParser, logParser);
 
-const getDetails = (detailType) => {
-  library[detailType]().then(console.table);
+const get = (op, askChoice) => {
+  library[op]().then((rows) => {
+    console.table(rows);
+    askChoice();
+  });
 };
 
 const addBook = () => {
@@ -52,30 +57,41 @@ const filterAvailableBooksBy = () => {
 
 const issueBook = () => {
   library.issueBook('LIB00001', 25275).then((res) => console.log(res));
-  getDetails('getLogs');
-  getDetails('getBookCopies');
+  get('getLogs');
+  get('getBookCopies');
 };
 
 const returnBook = () => {
   library.returnBook('LIB00001', 25275).then((res) => console.log(res));
-  getDetails('getLogs');
-  getDetails('getBookCopies');
+  get('getLogs');
+  get('getBookCopies');
+};
+
+const userOps = () => {
+  console.log('Welcome...... User');
+  console.log('1. list all books');
+  console.log('2. list of all available books');
+
+  const ops = { 1: 'getBooks', 2: 'getAvailableBooks' };
+
+  const askChoice = () => {
+    const choice = prompt('Enter your choice: ');
+    get(ops[choice], askChoice);
+  };
+
+  askChoice();
 };
 
 const main = () => {
-  getDetails('getBooks');
-  // getDetails('getAvailableBooks');
-  // getDetails('getLogs');
-  // getDetails('defaulterUsers');
-  // getDetails('popularBooks');
-  // getDetails('regularUsers');
-  // getDetails('getBookCopies');
-  // filterBooksBy();
-  // filterAvailableBooksBy();
-  // issueBook();
-  returnBook();
-  // addBook();
-  // addCopy();
+  console.log('Welcome......');
+  console.log('1. As a User');
+  console.log('2. As a Librarian');
+
+  const choice = prompt('Enter your choice: ');
+
+  if (choice === '1') {
+    userOps();
+  }
 };
 
 main();
