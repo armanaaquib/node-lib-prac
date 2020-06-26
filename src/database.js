@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const { ModelStatementParser } = require('./statementParser');
+const {ModelStatementParser} = require('./statementParser');
 
 const throwError = (err) => {
   if (err) {
@@ -19,6 +19,7 @@ const bookSchema = [
   'publisher_name VARCHAR(25)',
   'book_category VARCHAR(30)',
 ];
+
 const bookParser = new ModelStatementParser(bookSchema, 'book_titles');
 const bookTableSql = bookParser.createTable();
 db.run(bookTableSql, [], throwError);
@@ -46,4 +47,4 @@ const logParser = new ModelStatementParser(libraryLogSchema, 'library_log');
 const libraryLogTableSql = logParser.createTable();
 db.run(libraryLogTableSql, [], throwError);
 
-module.exports = { db, bookParser, copyParser, logParser };
+module.exports = {db, bookParser, copyParser, logParser};

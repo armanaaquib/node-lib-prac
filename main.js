@@ -1,5 +1,5 @@
-const { db, bookParser, copyParser, logParser } = require('./src/database');
-const { Library } = require('./src/library');
+const {db, bookParser, copyParser, logParser} = require('./src/database');
+const {Library} = require('./src/library');
 
 const library = new Library(db, bookParser, copyParser, logParser);
 
@@ -13,8 +13,14 @@ const getBooks = () => {
   });
 };
 
-const getAvailableBooks = () => {
-  library.getAvailableBooks().then((books) => {
+const getBookCopiesTable = () => {
+  library.getBookCopies().then((books) => {
+    console.table(books);
+  });
+};
+
+const getLibraryLogTable = () => {
+  library.getLogs().then((books) => {
     console.table(books);
   });
 };
@@ -27,10 +33,8 @@ const getPopularBooks = () => {
 
 const main = () => {
   getBooks();
-  // addBook();
-  // getBooks();
-  getPopularBooks();
-  // getAvailableBooks();
+  getBookCopiesTable();
+  getLibraryLogTable();
 };
 
 main();

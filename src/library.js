@@ -19,14 +19,28 @@ class Library {
   }
 
   getBooks() {
+    const columns = ['title', 'book_category', 'author_1', 'author_2', 'author_3'];
+    const sql = this.bookParser.select({columns});
+    return runSql(sql, [], this.db.all.bind(this.db));
+  }
+
+  getBookCopies() {
     const columns = [
-      'title',
-      'book_category',
-      'author_1',
-      'author_2',
-      'author_3',
+      'serial_number',
+      'ISBN',
+      'enrolled_date',
+      'available_from',
+      'is_available',
+      'issued_date',
+      'library_user_id',
     ];
-    const sql = this.bookParser.select({ columns });
+    const sql = this.copyParser.select({columns});
+    return runSql(sql, [], this.db.all.bind(this.db));
+  }
+
+  getLogs() {
+    const columns = ['action', 'date_of_action', 'library_user_id', 'serial_number'];
+    const sql = this.logParser.select({columns});
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
@@ -81,8 +95,7 @@ class Library {
     };
     const sql2 = this.copyParser.insert(copyInsertionDetail);
     return (
-      runSql(sql1, [], this.db.all.bind(this.db)) &&
-      runSql(sql2, [], this.db.all.bind(this.db))
+      runSql(sql1, [], this.db.all.bind(this.db)) && runSql(sql2, [], this.db.all.bind(this.db))
     );
   }
 
@@ -98,29 +111,18 @@ class Library {
     };
     const sql = this.copyParser.insert(insertionDetail);
     return (
-      runSql(sql, [], this.db.all.bind(this.db)) &&
-      runSql(updateSQL, [], this.db.all.bind(this.db))
+      runSql(sql, [], this.db.all.bind(this.db)) && runSql(updateSQL, [], this.db.all.bind(this.db))
     );
   }
 
   popularBooks() {
     const queryDetails = {
-      columns: [
-        'serial_number',
-        'count(serial_number) occurring_time',
-        'serial_number',
-      ],
-      where:
-        "action = 'issue' AND date_of_action BETWEEN date('now', '-1year') AND date('now')",
+      columns: ['serial_number', 'count(serial_number) occurring_time', 'serial_number'],
+      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1year') AND date('now')",
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
-      columns: [
-        'occurring_time',
-        ' tab1.serial_number',
-        'tab2.ISBN',
-        'tab3.title',
-      ],
+      columns: ['occurring_time', ' tab1.serial_number', 'tab2.ISBN', 'tab3.title'],
     };
 
     const subSql = this.logParser.select(queryDetails);
@@ -158,4 +160,4 @@ class Library {
   }
 }
 
-module.exports = { Library };
+module.exports = {Library};
