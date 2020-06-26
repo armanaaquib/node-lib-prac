@@ -5,11 +5,8 @@ const { Library } = require('./src/library');
 
 const library = new Library(db, bookParser, copyParser, logParser);
 
-const get = (op, askChoice) => {
-  library[op]().then((rows) => {
-    console.table(rows);
-    askChoice();
-  });
+const get = (op, next) => {
+  library[op]().then(console.table).then(next);
 };
 
 const addBook = () => {
@@ -33,26 +30,27 @@ const addCopy = () => {
   });
 };
 
-const filterBooksBy = () => {
-  library
-    .filterBooksBy({ attribute: 'ISBN', value: '"ISBN1"' })
-    .then((rows) => {
-      console.table(rows);
-    });
-
-  library
-    .filterBooksBy({ attribute: 'book_category', value: '"CSE"' })
-    .then((rows) => {
-      console.table(rows);
-    });
+const displayBookProperties = () => {
+  console.log('ISBN', 'title', 'book_category', 'publisher_name');
 };
 
-const filterAvailableBooksBy = () => {
+const filterBooks = (next) => {
+  displayBookProperties();
+  const property = prompt('enter property: ');
+  const value = prompt('enter value: ');
+
+  library.filterBooksBy(property, value).then(console.table).then(next);
+};
+
+const filterAvailableBooks = (next) => {
+  displayBookProperties();
+  const property = prompt('enter property: ');
+  const value = prompt('enter value: ');
+
   library
-    .filterAvailableBooksBy({ attribute: 'book_category', value: '"CSE"' })
-    .then((rows) => {
-      console.table(rows);
-    });
+    .filterAvailableBooksBy(property, value)
+    .then(console.table)
+    .then(next);
 };
 
 const issueBook = () => {
@@ -67,19 +65,34 @@ const returnBook = () => {
   get('getBookCopies');
 };
 
-const userOps = () => {
-  console.log('Welcome...... User');
+const listAllBooks = (askChoice) => {
+  console.log('all books');
+  get('getBooks', askChoice);
+};
+
+const listAllAvailableBooks = (askChoice) => {
+  console.log('all available books');
+  get('getAvailableBooks', askChoice);
+};
+
+const displayUserOptions = () => {
   console.log('1. list all books');
   console.log('2. list of all available books');
+  console.log('3. filter all books by');
+  console.log('4. filter all available books by');
+};
 
-  const ops = { 1: 'getBooks', 2: 'getAvailableBooks' };
-
-  const askChoice = () => {
-    const choice = prompt('Enter your choice: ');
-    get(ops[choice], askChoice);
+const userOps = () => {
+  const ops = {
+    1: listAllBooks,
+    2: listAllAvailableBooks,
+    3: filterBooks,
+    4: filterAvailableBooks,
   };
 
-  askChoice();
+  displayUserOptions();
+  const choice = prompt('Enter your choice: ');
+  ops[choice](userOps);
 };
 
 const main = () => {
@@ -90,6 +103,7 @@ const main = () => {
   const choice = prompt('Enter your choice: ');
 
   if (choice === '1') {
+    console.log('Welcome...... User');
     userOps();
   }
 };

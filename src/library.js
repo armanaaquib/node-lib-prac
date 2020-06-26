@@ -25,6 +25,7 @@ class Library {
       'author_1',
       'author_2',
       'author_3',
+      'publisher_name',
     ];
     const sql = this.bookParser.select({ columns });
     return runSql(sql, [], this.db.all.bind(this.db));
@@ -76,24 +77,22 @@ class Library {
     return runSql(sql, [true], this.db.all.bind(this.db));
   }
 
-  filterBooksBy(cause) {
-    const attribute = cause.attribute;
-    const value = cause.value;
-
+  filterBooksBy(attribute, value) {
     const columns = [
       'title',
       'book_category',
       'author_1',
       'author_2',
       'author_3',
+      'publisher_name',
     ];
 
-    const where = `${attribute}=${value}`;
+    const where = `${attribute}="${value}"`;
     const sql = this.bookParser.select({ columns, where });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
-  filterAvailableBooksBy(cause) {
+  filterAvailableBooksBy(attribute, value) {
     const columns = [
       'DISTINCT title',
       'count(title) OVER(PARTITION BY title) as no_of_copies_available',
@@ -110,7 +109,7 @@ class Library {
     WHERE
       is_available = ?
       and date('now') >= available_from
-      and ${cause.attribute}=${cause.value}`;
+      and ${attribute}="${value}"`;
 
     return runSql(sql, [true], this.db.all.bind(this.db));
   }
