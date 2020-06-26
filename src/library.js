@@ -109,7 +109,7 @@ class Library {
       columns: ['occurring_time', ' tab1.serial_number', 'tab2.ISBN', 'tab3.title'],
     };
 
-    const subSql = this.library_log.select(queryDetails).slice(0, -1);
+    const subSql = this.library_log.select(queryDetails);
     const subSql2 = this.book_titles
       .select(queryDetails2)
       .replace(/book_titles/, 'issuedBook tab1');
@@ -122,7 +122,7 @@ class Library {
 
                   LEFT join ${this.book_titles} tab3
                   ON tab2.ISBN = tab3.ISBN
-                  order by occurring_time DESC;`;
+                  order by occurring_time DESC`;
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
