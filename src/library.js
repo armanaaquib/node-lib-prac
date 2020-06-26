@@ -83,42 +83,64 @@ class Library {
     // this.libraryLog
   }
 
-  addBook(bookTitles, bookCopies, bookDetail, bookCopiesDetail) {
+  addBook(bookDetail, bookCopiesDetail) {
     const insertionDetail = {
-      columns: bookTitles,
+      columns: this.bookParser.getColumns(),
       values: bookDetail,
     };
     const sql1 = this.bookParser.insert(insertionDetail);
     const copyInsertionDetail = {
-      columns: bookCopies,
+      columns: this.copyParser.getColumns(),
       values: bookCopiesDetail,
     };
     const sql2 = this.copyParser.insert(copyInsertionDetail);
-    return (
-      runSql(sql1, [], this.db.all.bind(this.db)) && runSql(sql2, [], this.db.all.bind(this.db))
-    );
+    const sql3 = this.copyParser.select({columns: ['*']});
+    return new Promise((res, rej) => {
+      this.db.serialize(() => {
+        this.db
+          .run(sql1)
+          .run(sql2)
+          .all(sql3, (err, rows) => {
+            if (err) {
+              throw err;
+            }
+            res(rows);
+          });
+      });
+    });
   }
 
-  addCopy(ISBN, bookDetail, copyDetail) {
+  addCopy(ISBN, copyDetail) {
     const updateDetail = {
-      columns: ['no_of_copies_total=no_of_copies +1'],
+      columns: ['number_of_copies_total = number_of_copies_total +1'],
       where: [`ISBN=${ISBN}`],
     };
     const updateSQL = this.bookParser.update(updateDetail);
     const insertionDetail = {
-      columns: bookDetail,
+      columns: this.copyParser.getColumns(),
       values: copyDetail,
     };
     const sql = this.copyParser.insert(insertionDetail);
-    return (
-      runSql(sql, [], this.db.all.bind(this.db)) && runSql(updateSQL, [], this.db.all.bind(this.db))
-    );
+    const sql2 = this.bookParser.select({columns: ['*']});
+    return new Promise((res, rej) => {
+      this.db.serialize(() => {
+        this.db
+          .run(sql)
+          .run(updateSQL)
+          .all(sql2, (err, rows) => {
+            if (err) {
+              throw err;
+            }
+            res(rows);
+          });
+      });
+    });
   }
 
   popularBooks() {
     const queryDetails = {
       columns: ['serial_number', 'count(serial_number) occurring_time', 'serial_number'],
-      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1year') AND date('now')",
+      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
@@ -138,22 +160,23 @@ class Library {
 
                   LEFT join book_titles tab3
                   ON tab2.ISBN = tab3.ISBN
-                  order by occurring_time DESC`;
+                  order by occurring_time DESC
+                  LIMIT 3`;
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   regularUsers() {
     const queryDetails = {
-      columns: ['max(library_user_id)'],
+      columns: ['max(library_user_id) regularUser'],
     };
-    const sql = this.library_log.select(queryDetails);
+    const sql = this.logParser.select(queryDetails);
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   defaulterUsers() {
     const queryDetails = {
       columns: ['issued_date', 'library_user_id', 'serial_number'],
-      where: "is_available = false AND issued_date < date('now', '-10 day')",
+      where: "is_available = false AND issued_date < date('now', '-15 day')",
     };
     const sql = this.copyParser.select(queryDetails);
     return runSql(sql, [], this.db.all.bind(this.db));

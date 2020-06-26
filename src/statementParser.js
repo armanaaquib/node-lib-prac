@@ -9,6 +9,10 @@ class ModelStatementParser {
     return `CREATE TABLE IF NOT EXISTS ${this.tableName}(${columnData})`;
   }
 
+  getColumns() {
+    return this.schema.map((ele) => ele.split(' ')[0]);
+  }
+
   insert({columns, values}) {
     const insertedData = values.map((statement) => `(${statement})`).join();
     return `INSERT INTO ${this.tableName} (${columns})
