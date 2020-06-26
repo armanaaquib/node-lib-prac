@@ -19,8 +19,14 @@ class Library {
   }
 
   getBooks() {
-    const columns = ['title', 'book_category', 'author_1', 'author_2', 'author_3'];
-    const sql = this.bookParser.select({columns});
+    const columns = [
+      'title',
+      'book_category',
+      'author_1',
+      'author_2',
+      'author_3',
+    ];
+    const sql = this.bookParser.select({ columns });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
@@ -34,13 +40,18 @@ class Library {
       'issued_date',
       'library_user_id',
     ];
-    const sql = this.copyParser.select({columns});
+    const sql = this.copyParser.select({ columns });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getLogs() {
-    const columns = ['action', 'date_of_action', 'library_user_id', 'serial_number'];
-    const sql = this.logParser.select({columns});
+    const columns = [
+      'action',
+      'date_of_action',
+      'library_user_id',
+      'serial_number',
+    ];
+    const sql = this.logParser.select({ columns });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
@@ -65,17 +76,92 @@ class Library {
   }
 
   filterBooksBy(cause) {
-    // this.booksTitles
+    const attribute = cause.attribute;
+    const value = cause.value;
+
+    const columns = [
+      'title',
+      'book_category',
+      'author_1',
+      'author_2',
+      'author_3',
+    ];
+
+    const where = `${attribute}=${value}`;
+    const sql = this.bookParser.select({ columns, where });
+    return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterAvailableBooksBy(cause) {
-    // this.booksTitles
-    // this.bookCopies
+    const sql = `
+    SELECT
+      DISTINCT title,
+      count(title) OVER(PARTITION BY title) as no_of_copies_available,
+      author_1,
+      author_2,
+      author_3,
+      publisher_name,
+      book_category
+    FROM
+      book_titles
+      INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
+    WHERE
+      is_available = ?
+      and date('now') >= available_from
+      and ${cause.attribute}=${cause.value}`;
+
+    return runSql(sql, [true], this.db.all.bind(this.db));
   }
 
   issueBook(serialNumber, userId) {
-    // this.bookCopies
-    // this.libraryLog
+    const libLogInsertSql = `
+    INSERT INTO
+      library_log(
+        action,
+        date_of_action,
+        library_user_id,
+        serial_number
+      )
+    VALUES
+      ('issue',
+      date('now'),
+      ${userId},
+      '${serialNumber}')
+    `;
+
+    const updateBookCopySql = `
+    UPDATE
+      book_copies
+    SET
+      is_available = false,
+      issued_date = date('now'),
+      library_user_id = ${userId}
+    WHERE
+      serial_number = '${serialNumber}'`;
+
+    const isAvailableSql = `
+    SELECT
+      count(serial_number) AS no_of_copies_available
+    FROM
+      book_copies
+    WHERE
+      is_available = true
+      AND serial_number = '${serialNumber}'`;
+
+    return new Promise((res, rej) => {
+      this.db.get(isAvailableSql, (err, row) => {
+        if (row.no_of_copies_available === 0) {
+          res(false);
+        }
+
+        this.db.parallelize(() => {
+          this.db.run(libLogInsertSql);
+          this.db.run(updateBookCopySql);
+        });
+
+        res(true);
+      });
+    });
   }
 
   returnBook(serialNumber, userId) {
@@ -94,7 +180,7 @@ class Library {
       values: bookCopiesDetail,
     };
     const sql2 = this.copyParser.insert(copyInsertionDetail);
-    const sql3 = this.copyParser.select({columns: ['*']});
+    const sql3 = this.copyParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -121,7 +207,7 @@ class Library {
       values: copyDetail,
     };
     const sql = this.copyParser.insert(insertionDetail);
-    const sql2 = this.bookParser.select({columns: ['*']});
+    const sql2 = this.bookParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -139,12 +225,22 @@ class Library {
 
   popularBooks() {
     const queryDetails = {
-      columns: ['serial_number', 'count(serial_number) occurring_time', 'serial_number'],
-      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
+      columns: [
+        'serial_number',
+        'count(serial_number) occurring_time',
+        'serial_number',
+      ],
+      where:
+        "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
-      columns: ['occurring_time', ' tab1.serial_number', 'tab2.ISBN', 'tab3.title'],
+      columns: [
+        'occurring_time',
+        ' tab1.serial_number',
+        'tab2.ISBN',
+        'tab3.title',
+      ],
     };
 
     const subSql = this.logParser.select(queryDetails);
@@ -183,4 +279,4 @@ class Library {
   }
 }
 
-module.exports = {Library};
+module.exports = { Library };

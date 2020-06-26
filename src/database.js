@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const {ModelStatementParser} = require('./statementParser');
+const { ModelStatementParser } = require('./statementParser');
 
 const throwError = (err) => {
   if (err) {
@@ -47,4 +47,4 @@ const logParser = new ModelStatementParser(libraryLogSchema, 'library_log');
 const libraryLogTableSql = logParser.createTable();
 db.run(libraryLogTableSql, [], throwError);
 
-module.exports = {db, bookParser, copyParser, logParser};
+module.exports = { db, bookParser, copyParser, logParser };

@@ -13,13 +13,13 @@ class ModelStatementParser {
     return this.schema.map((ele) => ele.split(' ')[0]);
   }
 
-  insert({columns, values}) {
+  insert({ columns, values }) {
     const insertedData = values.map((statement) => `(${statement})`).join();
     return `INSERT INTO ${this.tableName} (${columns})
                   VALUES ${insertedData}`;
   }
 
-  update({columns, where}) {
+  update({ columns, where }) {
     const dataToUpdate = columns.join(',');
     return `UPDATE ${this.tableName}
               SET ${dataToUpdate}
@@ -31,7 +31,7 @@ class ModelStatementParser {
               WHERE ${conditions.join('OR')}`;
   }
 
-  select({columns, where, orderBy, groupBy}) {
+  select({ columns, where, orderBy, groupBy }) {
     let query = `SELECT ${columns.join(',')} FROM ${this.tableName}`;
     query = where ? query + ` WHERE ${where}` : query;
     query = groupBy ? query + ` GROUP BY ${groupBy}` : query;
@@ -40,4 +40,4 @@ class ModelStatementParser {
   }
 }
 
-module.exports = {ModelStatementParser};
+module.exports = { ModelStatementParser };
