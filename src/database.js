@@ -25,7 +25,7 @@ const bookTableSql = bookParser.createTable();
 db.run(bookTableSql, [], throwError);
 
 const copySchema = [
-  'serial_number VARCHAR(10)',
+  'serial_number VARCHAR(10) PRIMARY KEY',
   'ISBN VARCHAR(50)',
   'enrolled_date DATE',
   'available_from DATE',

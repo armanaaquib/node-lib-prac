@@ -19,59 +19,37 @@ class Library {
   }
 
   getBooks() {
-    const columns = [
-      'title',
-      'ISBN',
-      'number_of_copies_total',
-      'book_category',
-      'author_1',
-      'author_2',
-      'author_3',
-      'publisher_name',
-    ];
-    const sql = this.bookParser.select({ columns });
+    const sql = this.bookParser.select({
+      columns: this.bookParser.getColumns(),
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getBookCopies() {
-    const columns = [
-      'serial_number',
-      'ISBN',
-      'enrolled_date',
-      'available_from',
-      'is_available',
-      'issued_date',
-      'library_user_id',
-    ];
-    const sql = this.copyParser.select({ columns });
+    const sql = this.copyParser.select({
+      columns: this.copyParser.getColumns(),
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getLogs() {
-    const columns = [
-      'action',
-      'date_of_action',
-      'library_user_id',
-      'serial_number',
-    ];
-    const sql = this.logParser.select({ columns });
+    const sql = this.logParser.select({ columns: this.logParser.getColumns() });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getAvailableBooks() {
-    const columns = [
-      'DISTINCT title',
-      'book_titles.ISBN AS ISBN',
-      'count(title) OVER(PARTITION BY title) as no_of_copies_available',
-      'author_1',
-      'author_2',
-      'author_3',
-      'publisher_name',
-      'book_category',
-    ];
+    const columns = this.bookParser.getColumns();
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
+
+    subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
+    console.log(subSql);
+    subSql = subSql.replace(/number_of_copies_total,/, '');
 
     const sql = `  
-    ${this.bookParser.select({ columns })}
+    ${subSql}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -81,62 +59,45 @@ class Library {
   }
 
   filterBooksBy(attribute, value) {
-    const columns = [
-      'title',
-      'ISBN',
-      'number_of_copies_total',
-      'book_category',
-      'author_1',
-      'author_2',
-      'author_3',
-      'publisher_name',
-    ];
-
     const where = `${attribute}="${value}"`;
-    const sql = this.bookParser.select({ columns, where });
+    const sql = this.bookParser.select({
+      columns: this.bookParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterBookCopies(attribute, value) {
-    const columns = [
-      'serial_number',
-      'ISBN',
-      'enrolled_date',
-      'available_from',
-      'is_available',
-      'issued_date',
-      'library_user_id',
-    ];
     const where = `${attribute}="${value}"`;
-    const sql = this.copyParser.select({ columns, where });
+    const sql = this.copyParser.select({
+      columns: this.copyParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterLogs(attribute, value) {
-    const columns = [
-      'action',
-      'date_of_action',
-      'library_user_id',
-      'serial_number',
-    ];
     const where = `${attribute}="${value}"`;
-    const sql = this.logParser.select({ columns, where });
+    const sql = this.logParser.select({
+      columns: this.logParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterAvailableBooksBy(attribute, value) {
-    const columns = [
-      'DISTINCT title',
-      'count(title) OVER(PARTITION BY title) as no_of_copies_available',
-      'author_1',
-      'author_2',
-      'author_3',
-      'publisher_name',
-      'book_category',
-    ];
+    const columns = this.bookParser.getColumns();
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
+
+    subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
+    console.log(subSql);
+    subSql = subSql.replace(/number_of_copies_total,/, '');
 
     const sql = `
-    ${this.bookParser.select({ columns })}
+    ${subSql}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -240,6 +201,7 @@ class Library {
     };
     const sql2 = this.copyParser.insert(copyInsertionDetail);
     const sql3 = this.copyParser.select({ columns: ['*'] });
+
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -267,6 +229,7 @@ class Library {
     };
     const sql = this.copyParser.insert(insertionDetail);
     const sql2 = this.bookParser.select({ columns: ['*'] });
+
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
