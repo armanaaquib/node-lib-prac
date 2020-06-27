@@ -19,37 +19,21 @@ class Library {
   }
 
   getBooks() {
-    const columns = [
-      'title',
-      'ISBN',
-      'number_of_copies_total',
-      'book_category',
-      'author_1',
-      'author_2',
-      'author_3',
-      'publisher_name',
-    ];
-    const sql = this.bookParser.select({columns});
+    const sql = this.bookParser.select({
+      columns: this.bookParser.getColumns(),
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getBookCopies() {
-    const columns = [
-      'serial_number',
-      'ISBN',
-      'enrolled_date',
-      'available_from',
-      'is_available',
-      'issued_date',
-      'library_user_id',
-    ];
-    const sql = this.copyParser.select({columns});
+    const sql = this.copyParser.select({
+      columns: this.copyParser.getColumns(),
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getLogs() {
-    const columns = ['action', 'date_of_action', 'library_user_id', 'serial_number'];
-    const sql = this.logParser.select({columns});
+    const sql = this.logParser.select({ columns: this.logParser.getColumns() });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
@@ -65,7 +49,7 @@ class Library {
     subSql = subSql.replace(/number_of_copies_total,/, '');
 
     const sql = `  
-    ${this.bookParser.select({columns})}
+    ${subSql}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -76,20 +60,28 @@ class Library {
 
   filterBooksBy(attribute, value) {
     const where = `${attribute}="${value}"`;
-    const sql = this.bookParser.select({columns, where});
+    const sql = this.bookParser.select({
+      columns: this.bookParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterBookCopies(attribute, value) {
     const where = `${attribute}="${value}"`;
-    const sql = this.copyParser.select({columns, where});
+    const sql = this.copyParser.select({
+      columns: this.copyParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   filterLogs(attribute, value) {
-    const columns = ['action', 'date_of_action', 'library_user_id', 'serial_number'];
     const where = `${attribute}="${value}"`;
-    const sql = this.logParser.select({columns, where});
+    const sql = this.logParser.select({
+      columns: this.logParser.getColumns(),
+      where,
+    });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
@@ -105,7 +97,7 @@ class Library {
     subSql = subSql.replace(/number_of_copies_total,/, '');
 
     const sql = `
-    ${this.bookParser.select({columns})}
+    ${subSql}
       INNER JOIN book_copies ON book_titles.ISBN = book_copies.ISBN
     WHERE
       is_available = ?
@@ -123,7 +115,11 @@ class Library {
     });
 
     const updateBookCopySql = this.copyParser.update({
-      columns: ['is_available = false', 'issued_date = date("now")', `library_user_id = ${userId}`],
+      columns: [
+        'is_available = false',
+        'issued_date = date("now")',
+        `library_user_id = ${userId}`,
+      ],
       where: `serial_number = '${serialNumber}'`,
     });
 
@@ -160,7 +156,11 @@ class Library {
     });
 
     const updateBookCopySql = this.copyParser.update({
-      columns: ['is_available = true', 'issued_date = NULL', 'library_user_id = NULL'],
+      columns: [
+        'is_available = true',
+        'issued_date = NULL',
+        'library_user_id = NULL',
+      ],
       where: `serial_number = '${serialNumber}'`,
     });
 
@@ -200,7 +200,7 @@ class Library {
       values: bookCopiesDetail,
     };
     const addedCopySql = this.copyParser.insert(copyInsertionDetail);
-    const bookDetailsSql = this.copyParser.select({columns: ['*']});
+    const bookDetailsSql = this.copyParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -227,7 +227,7 @@ class Library {
       values: copyDetail,
     };
     const insertBookCopySql = this.copyParser.insert(insertionDetail);
-    const selectBookSql = this.bookParser.select({columns: ['*']});
+    const selectBookSql = this.bookParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -245,12 +245,22 @@ class Library {
 
   popularBooks() {
     const queryDetails = {
-      columns: ['serial_number', 'count(serial_number) occurring_time', 'serial_number'],
-      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
+      columns: [
+        'serial_number',
+        'count(serial_number) occurring_time',
+        'serial_number',
+      ],
+      where:
+        "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
-      columns: ['occurring_time', ' tab1.serial_number', 'tab2.ISBN', 'tab3.title'],
+      columns: [
+        'occurring_time',
+        ' tab1.serial_number',
+        'tab2.ISBN',
+        'tab3.title',
+      ],
     };
 
     const subSql = this.logParser.select(queryDetails);
@@ -289,4 +299,4 @@ class Library {
   }
 }
 
-module.exports = {Library};
+module.exports = { Library };

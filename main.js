@@ -1,7 +1,7 @@
 const prompt = require('prompt-sync')();
 
-const {db, bookParser, copyParser, logParser} = require('./src/database');
-const {Library} = require('./src/library');
+const { db, bookParser, copyParser, logParser } = require('./src/database');
+const { Library } = require('./src/library');
 
 const library = new Library(db, bookParser, copyParser, logParser);
 
@@ -26,7 +26,10 @@ const filterAvailableBooks = (next) => {
   const property = prompt('enter property: ');
   const value = prompt('enter value: ');
 
-  library.filterAvailableBooksBy(property, value).then(console.table).then(next);
+  library
+    .filterAvailableBooksBy(property, value)
+    .then(console.table)
+    .then(next);
 };
 
 const issueBook = (next) => {
@@ -35,7 +38,10 @@ const issueBook = (next) => {
 
   library.issueBook(serialNo, userId).then((res) => {
     if (res) {
-      library.filterLogs('library_user_id', userId).then(console.table).then(next);
+      library
+        .filterLogs('library_user_id', userId)
+        .then(console.table)
+        .then(next);
     } else {
       console.log(serialNo, 'not found');
       next();
@@ -49,7 +55,10 @@ const returnBook = (next) => {
 
   library.returnBook(serialNo, userId).then((res) => {
     if (res) {
-      library.filterLogs('library_user_id', userId).then(console.table).then(next);
+      library
+        .filterLogs('library_user_id', userId)
+        .then(console.table)
+        .then(next);
     } else {
       console.log(serialNo, 'invalid');
       next();
@@ -130,7 +139,9 @@ const addBook = (next) => {
 };
 
 const addCopy = () => {
-  const copyDetails = ["'LIB00008', 5, date('now'), date('now', '+1 day'), true, null, null"];
+  const copyDetails = [
+    "'LIB00008', 5, date('now'), date('now', '+1 day'), true, null, null",
+  ];
   library.addCopy(5, copyDetails).then((res) => {
     console.table(res);
   });
