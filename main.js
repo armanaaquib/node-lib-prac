@@ -53,10 +53,21 @@ const filterAvailableBooks = (next) => {
     .then(next);
 };
 
-const issueBook = () => {
-  library.issueBook('LIB00001', 25275).then((res) => console.log(res));
-  get('getLogs');
-  get('getBookCopies');
+const issueBook = (next) => {
+  const serialNo = prompt('enter serial_no: ');
+  const userId = prompt('user id: ');
+
+  library.issueBook(serialNo, userId).then((res) => {
+    if (res) {
+      library
+        .filterLogs('library_user_id', userId)
+        .then(console.table)
+        .then(next);
+    } else {
+      console.log(serialNo, 'not found');
+      next();
+    }
+  });
 };
 
 const returnBook = () => {
@@ -80,6 +91,7 @@ const displayUserOptions = () => {
   console.log('2. list of all available books');
   console.log('3. filter all books by');
   console.log('4. filter all available books by');
+  console.log('5. issue a book');
 };
 
 const userOps = () => {
@@ -88,6 +100,8 @@ const userOps = () => {
     2: listAllAvailableBooks,
     3: filterBooks,
     4: filterAvailableBooks,
+    5: issueBook,
+    6: returnBook,
   };
 
   displayUserOptions();

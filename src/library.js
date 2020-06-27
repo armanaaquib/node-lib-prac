@@ -21,6 +21,7 @@ class Library {
   getBooks() {
     const columns = [
       'title',
+      'ISBN',
       'book_category',
       'author_1',
       'author_2',
@@ -59,6 +60,7 @@ class Library {
   getAvailableBooks() {
     const columns = [
       'DISTINCT title',
+      'book_titles.ISBN AS ISBN',
       'count(title) OVER(PARTITION BY title) as no_of_copies_available',
       'author_1',
       'author_2',
@@ -80,6 +82,7 @@ class Library {
   filterBooksBy(attribute, value) {
     const columns = [
       'title',
+      'ISBN',
       'book_category',
       'author_1',
       'author_2',
@@ -89,6 +92,33 @@ class Library {
 
     const where = `${attribute}="${value}"`;
     const sql = this.bookParser.select({ columns, where });
+    return runSql(sql, [], this.db.all.bind(this.db));
+  }
+
+  filterBookCopies(attribute, value) {
+    const columns = [
+      'serial_number',
+      'ISBN',
+      'enrolled_date',
+      'available_from',
+      'is_available',
+      'issued_date',
+      'library_user_id',
+    ];
+    const where = `${attribute}="${value}"`;
+    const sql = this.copyParser.select({ columns, where });
+    return runSql(sql, [], this.db.all.bind(this.db));
+  }
+
+  filterLogs(attribute, value) {
+    const columns = [
+      'action',
+      'date_of_action',
+      'library_user_id',
+      'serial_number',
+    ];
+    const where = `${attribute}="${value}"`;
+    const sql = this.logParser.select({ columns, where });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
