@@ -45,7 +45,6 @@ class Library {
     let subSql = this.bookParser.select({ columns });
 
     subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
-    console.log(subSql);
     subSql = subSql.replace(/number_of_copies_total,/, '');
 
     const sql = `  

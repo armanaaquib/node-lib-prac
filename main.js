@@ -114,7 +114,7 @@ const userOps = () => {
 const generateCopyDetails = function (ISBN, noOfCopies) {
   const copyDetails = [];
   while (noOfCopies) {
-    const newCopy = `${ISBN}, true, date('now'), date('now', '+1 day'), null, null`;
+    const newCopy = `"${ISBN}", true, date('now'), date('now', '+1 day'), null, null`;
     copyDetails.push(newCopy);
     noOfCopies--;
   }
@@ -132,7 +132,7 @@ const addBook = (next) => {
   const publisherName = prompt('Enter publisherName: ');
   const category = prompt('Enter category: ');
   const bookDetails = [
-    `${ISBN}, "${title}", "${author1}", "${author2}", "${author3}", ${noOfCopies}, "${publisherName}", "${category}"`,
+    `"${ISBN}", "${title}", "${author1}", "${author2}", "${author3}", ${noOfCopies}, "${publisherName}", "${category}"`,
   ];
   const copyDetails = generateCopyDetails(ISBN, noOfCopies);
   library.addBook(bookDetails, copyDetails).then(console.table).then(next);
