@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const { ModelStatementParser } = require('./statementParser');
+const {ModelStatementParser} = require('./statementParser');
 
 const throwError = (err) => {
   if (err) {
@@ -25,7 +25,7 @@ const bookTableSql = bookParser.createTable();
 db.run(bookTableSql, [], throwError);
 
 const copySchema = [
-  'serial_number VARCHAR(10) PRIMARY KEY',
+  'serial_number INTEGER PRIMARY KEY AUTOINCREMENT',
   'ISBN VARCHAR(50)',
   'enrolled_date DATE',
   'available_from DATE',
@@ -41,10 +41,10 @@ const libraryLogSchema = [
   'action VARCHAR(10)',
   'date_of_action DATE',
   'library_user_id NUMERIC(5)',
-  'serial_number VARCHAR(10)',
+  'serial_number INTEGER',
 ];
 const logParser = new ModelStatementParser(libraryLogSchema, 'library_log');
 const libraryLogTableSql = logParser.createTable();
 db.run(libraryLogTableSql, [], throwError);
 
-module.exports = { db, bookParser, copyParser, logParser };
+module.exports = {db, bookParser, copyParser, logParser};

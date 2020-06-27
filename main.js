@@ -1,7 +1,7 @@
 const prompt = require('prompt-sync')();
 
-const { db, bookParser, copyParser, logParser } = require('./src/database');
-const { Library } = require('./src/library');
+const {db, bookParser, copyParser, logParser} = require('./src/database');
+const {Library} = require('./src/library');
 
 const library = new Library(db, bookParser, copyParser, logParser);
 
@@ -26,10 +26,7 @@ const filterAvailableBooks = (next) => {
   const property = prompt('enter property: ');
   const value = prompt('enter value: ');
 
-  library
-    .filterAvailableBooksBy(property, value)
-    .then(console.table)
-    .then(next);
+  library.filterAvailableBooksBy(property, value).then(console.table).then(next);
 };
 
 const issueBook = (next) => {
@@ -38,10 +35,7 @@ const issueBook = (next) => {
 
   library.issueBook(serialNo, userId).then((res) => {
     if (res) {
-      library
-        .filterLogs('library_user_id', userId)
-        .then(console.table)
-        .then(next);
+      library.filterLogs('library_user_id', userId).then(console.table).then(next);
     } else {
       console.log(serialNo, 'not found');
       next();
@@ -55,10 +49,7 @@ const returnBook = (next) => {
 
   library.returnBook(serialNo, userId).then((res) => {
     if (res) {
-      library
-        .filterLogs('library_user_id', userId)
-        .then(console.table)
-        .then(next);
+      library.filterLogs('library_user_id', userId).then(console.table).then(next);
     } else {
       console.log(serialNo, 'invalid');
       next();
@@ -81,14 +72,18 @@ const listAllAvailableBooks = (askChoice) => {
   get('getAvailableBooks', askChoice);
 };
 
-const displayUserOptions = () => {
+const displayCommonOptions = () => {
   console.log('1. list all books');
   console.log('2. list of all available books');
   console.log('3. filter all books by');
   console.log('4. filter all available books by');
-  console.log('5. issue a book');
-  console.log('6. return a book');
-  console.log('7. check user history');
+  console.log('5. check user history');
+};
+
+const displayUserOptions = () => {
+  displayCommonOptions();
+  console.log('6. issue a book');
+  console.log('7. return a book');
 };
 
 const userOps = () => {
@@ -97,9 +92,9 @@ const userOps = () => {
     2: listAllAvailableBooks,
     3: filterBooks,
     4: filterAvailableBooks,
-    5: issueBook,
-    6: returnBook,
-    7: userHistory,
+    5: userHistory,
+    6: issueBook,
+    7: returnBook,
   };
 
   displayUserOptions();
@@ -107,22 +102,35 @@ const userOps = () => {
   ops[choice](userOps);
 };
 
-const addBook = () => {
+const generateCopyDetails = function (ISBN, noOfCopies) {
+  const copyDetails = [];
+  while (noOfCopies) {
+    const newCopy = `${ISBN}, true, date('now'), date('now', '+1 day'), null, null`;
+    copyDetails.push(newCopy);
+    noOfCopies--;
+  }
+  return copyDetails;
+};
+
+const addBook = (next) => {
+  console.log('Enter given details...');
+  const ISBN = prompt('Enter ISBN: ');
+  const title = prompt('Enter title: ');
+  const author1 = prompt('Enter author1: ');
+  const author2 = prompt('Enter author2: ');
+  const author3 = prompt('Enter author3: ');
+  const noOfCopies = prompt('Enter noOfCopies: ');
+  const publisherName = prompt('Enter publisherName: ');
+  const category = prompt('Enter category: ');
   const bookDetails = [
-    '5 , "The code book", "Simon Sing", null, null, 1, "unknown", "Encryption"',
+    `${ISBN}, "${title}", "${author1}", "${author2}", "${author3}", ${noOfCopies}, "${publisherName}", "${category}"`,
   ];
-  const copyDetails = [
-    "'LIB00007', 5, true, date('now'), date('now', '+1 day'), null, null",
-  ];
-  library.addBook(bookDetails, copyDetails).then((res) => {
-    console.table(res);
-  });
+  const copyDetails = generateCopyDetails(ISBN, noOfCopies);
+  library.addBook(bookDetails, copyDetails).then(console.table).then(next);
 };
 
 const addCopy = () => {
-  const copyDetails = [
-    "'LIB00008', 5, date('now'), date('now', '+1 day'), true, null, null",
-  ];
+  const copyDetails = ["'LIB00008', 5, date('now'), date('now', '+1 day'), true, null, null"];
   library.addCopy(5, copyDetails).then((res) => {
     console.table(res);
   });
@@ -141,10 +149,12 @@ const defaulterUsers = (next) => {
 };
 
 const displayLibrarianOps = () => {
-  displayUserOptions();
-  console.log('10. popular books');
-  console.log('11. regular users');
-  console.log('12. book pending users');
+  displayCommonOptions();
+  console.log('6. add book');
+  console.log('7. add copy');
+  console.log('8. popular books');
+  console.log('9. regular users');
+  console.log('10. book pending users');
 };
 
 const librarianOps = () => {
@@ -153,12 +163,12 @@ const librarianOps = () => {
     2: listAllAvailableBooks,
     3: filterBooks,
     4: filterAvailableBooks,
-    5: issueBook,
-    6: returnBook,
-    7: userHistory,
-    10: popularBooks,
-    11: regularUsers,
-    12: defaulterUsers,
+    5: userHistory,
+    6: addBook,
+    7: addCopy,
+    8: popularBooks,
+    9: regularUsers,
+    10: defaulterUsers,
   };
 
   displayLibrarianOps();
