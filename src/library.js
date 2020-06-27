@@ -22,6 +22,7 @@ class Library {
     const columns = [
       'title',
       'ISBN',
+      'number_of_copies_total',
       'book_category',
       'author_1',
       'author_2',
@@ -83,6 +84,7 @@ class Library {
     const columns = [
       'title',
       'ISBN',
+      'number_of_copies_total',
       'book_category',
       'author_1',
       'author_2',
