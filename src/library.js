@@ -237,12 +237,7 @@ class Library {
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
-      columns: [
-        'sum(occurring_time) issued_times',
-        ' tab1.serial_number',
-        'tab2.ISBN',
-        'tab3.title',
-      ],
+      columns: ['sum(occurring_time) issued_times', 'tab2.ISBN', 'tab3.title'],
     };
 
     const subSql = this.logParser.select(queryDetails);
@@ -266,9 +261,17 @@ class Library {
 
   regularUsers() {
     const queryDetails = {
-      columns: ['max(library_user_id) regularUser'],
+      columns: ['library_user_id', 'count(library_user_id) occurs'],
+      where: "action='issue'",
+      groupBy: 'library_user_id',
     };
-    const sql = this.logParser.select(queryDetails);
+    const subSql = this.logParser.select(queryDetails);
+    const queryDetails2 = {columns: ['library_user_id'], orderBy: 'occurs DESC'};
+    const subSql2 = this.logParser.select(queryDetails2).replace(/library_log/, 'issued_books');
+    const sql = `WITH issued_books as (
+                  ${subSql})
+                  ${subSql2}
+                  LIMIT 3`;
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
