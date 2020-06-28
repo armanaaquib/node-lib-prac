@@ -1,6 +1,7 @@
 const prompt = require('prompt-sync')();
-const {displayUserOptions} = require('./displayer');
+const { displayUserOptions } = require('./displayer');
 const {
+  exitMessage,
   listAllBooks,
   listAllAvailableBooks,
   filterBooks,
@@ -20,7 +21,7 @@ const issueBook = (library, next) => {
         .then(() => next(library));
     } else {
       console.log(serialNo, 'not found');
-      next();
+      next(library);
     }
   });
 };
@@ -37,7 +38,7 @@ const returnBook = (library, next) => {
         .then(() => next(library));
     } else {
       console.log(serialNo, 'invalid');
-      next();
+      next(library);
     }
   });
 };
@@ -51,6 +52,7 @@ const userOps = (library) => {
     5: userHistory,
     6: issueBook,
     7: returnBook,
+    '': exitMessage,
   };
 
   displayUserOptions();
@@ -58,4 +60,4 @@ const userOps = (library) => {
   ops[choice](library, userOps);
 };
 
-module.exports = {userOps};
+module.exports = { userOps };

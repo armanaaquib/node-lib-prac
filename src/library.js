@@ -39,8 +39,10 @@ class Library {
 
   getAvailableBooks() {
     const columns = this.bookParser.getColumns();
-    columns.push('count(title) OVER(PARTITION BY title) as no_of_copies_available');
-    let subSql = this.bookParser.select({columns});
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
 
     subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
     subSql = subSql.replace(/number_of_copies_total,/, '');
@@ -84,8 +86,10 @@ class Library {
 
   filterAvailableBooksBy(attribute, value) {
     const columns = this.bookParser.getColumns();
-    columns.push('count(title) OVER(PARTITION BY title) as no_of_copies_available');
-    let subSql = this.bookParser.select({columns});
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
 
     subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
     console.log(subSql);
@@ -213,8 +217,8 @@ class Library {
 
   addCopy(ISBN, copyDetail) {
     const updateDetail = {
-      columns: ['number_of_copies_total = number_of_copies_total +1'],
-      where: [`ISBN=${ISBN}`],
+      columns: ['number_of_copies_total = number_of_copies_total + 1'],
+      where: [`ISBN="${ISBN}"`],
     };
     const updateTitleSql = this.bookParser.update(updateDetail);
     const insertionDetail = {

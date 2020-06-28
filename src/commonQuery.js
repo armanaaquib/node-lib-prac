@@ -41,13 +41,15 @@ const userHistory = (library, next) => {
 };
 
 const listAllBooks = (library, next) => {
-  console.log('all books');
   get('getBooks', library, next);
 };
 
 const listAllAvailableBooks = (library, askChoice) => {
-  console.log('all available books');
   get('getAvailableBooks', library, askChoice);
+};
+
+const exitMessage = () => {
+  console.log('Thank you... for visiting.');
 };
 
 module.exports = {
@@ -57,4 +59,5 @@ module.exports = {
   filterAvailableBooks,
   userHistory,
   get,
+  exitMessage,
 };

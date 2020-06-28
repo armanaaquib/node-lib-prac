@@ -1,6 +1,7 @@
 const prompt = require('prompt-sync')();
-const {displayLibrarianOps} = require('./displayer');
+const { displayLibrarianOps } = require('./displayer');
 const {
+  exitMessage,
   get,
   listAllBooks,
   listAllAvailableBooks,
@@ -24,7 +25,7 @@ const defaulterUsers = (library, next) => {
 const generateCopyDetails = function (ISBN, noOfCopies) {
   const copyDetails = [];
   while (noOfCopies) {
-    const newCopy = `${ISBN}, true, date('now'), date('now', '+1 day'), null, null`;
+    const newCopy = `"${ISBN}", date('now'), date('now', '+1 day'), true, null, null`;
     copyDetails.push(newCopy);
     noOfCopies--;
   }
@@ -42,7 +43,8 @@ const addBook = (library, next) => {
   const publisherName = prompt('Enter publisherName: ');
   const category = prompt('Enter category: ');
   const bookDetails = [
-    `${ISBN}, "${title}", "${author1}", "${author2}", "${author3}", ${noOfCopies}, "${publisherName}", "${category}"`,
+    `"${ISBN}", "${title}", "${author1}", "${author2}", 
+     "${author3}", ${noOfCopies}, "${publisherName}", "${category}"`,
   ];
   const copyDetails = generateCopyDetails(ISBN, noOfCopies);
   library
@@ -72,6 +74,7 @@ const librarianOps = (library) => {
     8: popularBooks,
     9: regularUsers,
     10: defaulterUsers,
+    '': exitMessage,
   };
 
   displayLibrarianOps();
@@ -79,4 +82,4 @@ const librarianOps = (library) => {
   ops[choice](library, librarianOps);
 };
 
-module.exports = {librarianOps};
+module.exports = { librarianOps };

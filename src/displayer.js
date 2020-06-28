@@ -21,4 +21,4 @@ const displayLibrarianOps = () => {
   console.log('10. book pending users');
 };
 
-module.exports = {displayLibrarianOps, displayUserOptions};
+module.exports = { displayLibrarianOps, displayUserOptions };
