@@ -25,7 +25,7 @@ const defaulterUsers = (library, next) => {
 const generateCopyDetails = function (ISBN, noOfCopies) {
   const copyDetails = [];
   while (noOfCopies) {
-    const newCopy = `"${ISBN}", date('now'), date('now', '+1 day'), true, null, null`;
+    const newCopy = `"${ISBN}", date('now'), date('now'), true, null, null`;
     copyDetails.push(newCopy);
     noOfCopies--;
   }

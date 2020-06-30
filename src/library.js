@@ -33,14 +33,16 @@ class Library {
   }
 
   getLogs() {
-    const sql = this.logParser.select({columns: this.logParser.getColumns()});
+    const sql = this.logParser.select({ columns: this.logParser.getColumns() });
     return runSql(sql, [], this.db.all.bind(this.db));
   }
 
   getAvailableBooks() {
     const columns = this.bookParser.getColumns();
-    columns.push('count(title) OVER(PARTITION BY title) as no_of_copies_available');
-    let subSql = this.bookParser.select({columns});
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
 
     subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
     subSql = subSql.replace(/number_of_copies_total,/, '');
@@ -84,8 +86,10 @@ class Library {
 
   filterAvailableBooksBy(attribute, value) {
     const columns = this.bookParser.getColumns();
-    columns.push('count(title) OVER(PARTITION BY title) as no_of_copies_available');
-    let subSql = this.bookParser.select({columns});
+    columns.push(
+      'count(title) OVER(PARTITION BY title) as no_of_copies_available'
+    );
+    let subSql = this.bookParser.select({ columns });
 
     subSql = subSql.replace(/ISBN/, 'DISTINCT book_titles.ISBN AS ISBN');
     console.log(subSql);
@@ -97,7 +101,7 @@ class Library {
     WHERE
       is_available = ?
       and date('now') >= available_from
-      and ${attribute}="${value}"`;
+      and book_titles.${attribute}="${value}"`;
 
     return runSql(sql, [true], this.db.all.bind(this.db));
   }
@@ -110,7 +114,11 @@ class Library {
     });
 
     const updateBookCopySql = this.copyParser.update({
-      columns: ['is_available = false', 'issued_date = date("now")', `library_user_id = ${userId}`],
+      columns: [
+        'is_available = false',
+        'issued_date = date("now")',
+        `library_user_id = ${userId}`,
+      ],
       where: `serial_number = '${serialNumber}'`,
     });
 
@@ -147,7 +155,11 @@ class Library {
     });
 
     const updateBookCopySql = this.copyParser.update({
-      columns: ['is_available = true', 'issued_date = NULL', 'library_user_id = NULL'],
+      columns: [
+        'is_available = true',
+        'issued_date = NULL',
+        'library_user_id = NULL',
+      ],
       where: `serial_number = '${serialNumber}'`,
     });
 
@@ -187,7 +199,7 @@ class Library {
       values: bookCopiesDetail,
     };
     const addedCopySql = this.copyParser.insert(copyInsertionDetail);
-    const bookDetailsSql = this.copyParser.select({columns: ['*']});
+    const bookDetailsSql = this.copyParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -214,7 +226,7 @@ class Library {
       values: copyDetail,
     };
     const insertBookCopySql = this.copyParser.insert(insertionDetail);
-    const selectBookSql = this.bookParser.select({columns: ['*']});
+    const selectBookSql = this.bookParser.select({ columns: ['*'] });
     return new Promise((res, rej) => {
       this.db.serialize(() => {
         this.db
@@ -232,8 +244,13 @@ class Library {
 
   popularBooks() {
     const queryDetails = {
-      columns: ['serial_number', 'count(serial_number) occurring_time', 'serial_number'],
-      where: "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
+      columns: [
+        'serial_number',
+        'count(serial_number) occurring_time',
+        'serial_number',
+      ],
+      where:
+        "action = 'issue' AND date_of_action BETWEEN date('now', '-1 year') AND date('now')",
       groupBy: 'serial_number',
     };
     const queryDetails2 = {
@@ -266,8 +283,13 @@ class Library {
       groupBy: 'library_user_id',
     };
     const subSql = this.logParser.select(queryDetails);
-    const queryDetails2 = {columns: ['library_user_id'], orderBy: 'occurs DESC'};
-    const subSql2 = this.logParser.select(queryDetails2).replace(/library_log/, 'issued_books');
+    const queryDetails2 = {
+      columns: ['library_user_id'],
+      orderBy: 'occurs DESC',
+    };
+    const subSql2 = this.logParser
+      .select(queryDetails2)
+      .replace(/library_log/, 'issued_books');
     const sql = `WITH issued_books as (
                   ${subSql})
                   ${subSql2}
@@ -285,4 +307,4 @@ class Library {
   }
 }
 
-module.exports = {Library};
+module.exports = { Library };
